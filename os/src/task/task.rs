@@ -50,6 +50,12 @@ pub struct TaskControlBlockInner {
     /// Maintain the execution status of the current process
     pub task_status: TaskStatus,
 
+    //CH3 ADDED
+    /// ms
+    pub start_time: usize,
+    /// count
+    pub syscall_times: [u32; crate::config::MAX_SYSCALL_NUM], //TODO: too much space
+
     /// Application address space
     pub memory_set: MemorySet,
 
@@ -118,6 +124,10 @@ impl TaskControlBlock {
                     exit_code: 0,
                     heap_bottom: user_sp,
                     program_brk: user_sp,
+                    //CH3 ADDED: task_info
+                    start_time: 0,
+                    syscall_times: [0; crate::config::MAX_SYSCALL_NUM],
+                    //CH3 ADDED: task_info
                 })
             },
         };
@@ -191,6 +201,11 @@ impl TaskControlBlock {
                     exit_code: 0,
                     heap_bottom: parent_inner.heap_bottom,
                     program_brk: parent_inner.program_brk,
+                    //CH3 ADDED: task_info
+                    //TODO: should copy form parent or just 0?
+                    start_time: parent_inner.start_time,
+                    syscall_times: parent_inner.syscall_times.clone(),
+                    //CH3 ADDED: task_info
                 })
             },
         });
@@ -236,6 +251,19 @@ impl TaskControlBlock {
             None
         }
     }
+
+    //CH4 ADDED: spwan
+    /// parent process fork the child process
+    pub fn spawn(self: &Arc<Self>, _data: &[u8]) -> Arc<Self> {
+        let task_control_block = Arc::new(TaskControlBlock::new(_data));
+
+        task_control_block.inner_exclusive_access().parent = Some(Arc::downgrade(self));
+
+        self.inner_exclusive_access().children.push(task_control_block.clone());
+
+        task_control_block
+    }
+    //CH4 ADDED: spwan
 }
 
 #[derive(Copy, Clone, PartialEq)]
