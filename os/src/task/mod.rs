@@ -214,5 +214,39 @@ pub fn current_remove_map(_start: usize, _end: usize) -> isize{
     processor::return_current_task(task);
     -1
 }
-    
 //CH4 ADDED
+
+//CH5 ADDED: stride
+///
+pub fn set_priority(_prio: isize) -> isize{
+    let task = take_current_task().unwrap();
+
+    let pass_val = self::task::BIG_STRIDE / _prio as usize;
+
+    let mut pass = task.pass.exclusive_access();
+
+    *pass = pass_val;
+
+    drop(pass);
+
+    //TODO: 太丑陋了哥
+    processor::return_current_task(task);
+    _prio
+}
+
+// ///
+// pub fn update_stride(){
+//     let task = take_current_task().unwrap();
+
+//     let prio = task.priority.exclusive_access();
+//     let mut stride = task.stride.exclusive_access();
+
+//     *stride +=  self::task::BIG_STRIDE / *prio;
+
+//     drop(prio);
+//     drop(stride);
+
+//     //TODO: 太丑陋了哥
+//     processor::return_current_task(task);
+// }
+//CH5 ADDED: stride
